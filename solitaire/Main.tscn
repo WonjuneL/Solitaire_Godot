@@ -1,8 +1,13 @@
-[gd_scene format=3 uid="uid://0bmwygw42j6"]
+[gd_scene load_steps=3 format=3 uid="uid://0bmwygw42j6"]
+
+[ext_resource type="Script" path="res://deck.gd" id="1_gwbhi"]
+[ext_resource type="PackedScene" uid="uid://bwwagb5ymox2h" path="res://Card.tscn" id="2_kugfw"]
 
 [node name="Main" type="Node2D"]
 
 [node name="Deck" type="Node2D" parent="."]
+script = ExtResource("1_gwbhi")
+card_scene = ExtResource("2_kugfw")
 
 [node name="CardContainer" type="Node2D" parent="."]
 

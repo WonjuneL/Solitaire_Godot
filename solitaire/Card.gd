@@ -13,8 +13,8 @@ const CARD_WIDTH = 57  # 카드 한 장의 가로 크기
 const CARD_HEIGHT = 79  # 카드 한 장의 세로 크기
 
 # 카드 뒷면 좌표
-const BACK_UV_X = 4 * CARD_WIDTH  # 5번째 열
-const BACK_UV_Y = 1 * CARD_HEIGHT  # 2번째 행
+const BACK_UV_X = 2 + 1 * (CARD_WIDTH + 2)  # 5번째 열
+const BACK_UV_Y = 2 + 4 * (CARD_HEIGHT + 2)  # 2번째 행
 
 # 카드 정보 설정
 func set_card_info(card_num: int):
@@ -33,11 +33,12 @@ func set_face_up(face_up: bool):
         var suit_index = ["Hearts", "Clubs", "Diamonds", "Spades"].find(suit)
         var rank_index = (rank - 1)  # A=1, 2=2, ..., K=13
 
-        var column = (3 * suit_index) + (rank_index % 3)  # 열 계산
+        # **카드 스프라이트의 정확한 열, 행 계산**
+        var column = (rank_index % 3) + (suit_index * 3)  # suit마다 그룹 배치
         var row = rank_index / 3  # 행 계산
 
-        var x = column * CARD_WIDTH
-        var y = row * CARD_HEIGHT
+        var x = 2 + column * (CARD_WIDTH + 2)
+        var y = 2 + row * (CARD_HEIGHT + 2)
 
         texture.region = Rect2(x, y, CARD_WIDTH, CARD_HEIGHT)
     else:
