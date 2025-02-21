@@ -1,16 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://b1rb2kpdiv0r3"]
+[gd_scene load_steps=2 format=3 uid="uid://bwwagb5ymox2h"]
 
-[ext_resource type="Script" path="res://Card.gd" id="1_katk4"]
-[ext_resource type="Script" path="res://Deck.gd" id="2_cttot"]
+[ext_resource type="Script" path="res://card.gd" id="1_n0x62"]
 
-[node name="MainNode" type="Node2D"]
+[node name="Card" type="Node2D"]
+script = ExtResource("1_n0x62")
 
-[node name="Card" type="Node2D" parent="."]
-script = ExtResource("1_katk4")
+[node name="Sprite2D" type="Sprite2D" parent="."]
 
-[node name="Sprite2D" type="Sprite2D" parent="Card"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Card"]
-
-[node name="Deck" type="Node2D" parent="."]
-script = ExtResource("2_cttot")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]

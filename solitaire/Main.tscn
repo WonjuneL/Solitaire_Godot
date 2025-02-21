@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://0bmwygw42j6"]
+
+[node name="Main" type="Node2D"]
+
+[node name="Deck" type="Node2D" parent="."]
+
+[node name="CardContainer" type="Node2D" parent="."]
+
+[node name="Stock" type="Node2D" parent="."]
