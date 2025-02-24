@@ -22,6 +22,7 @@ func _on_card_clicked(card):
     else:
         if can_select(card):
             target_card = card
+            print("Target card selected.", target_card)
         else:
             print("Check the card.")
         if selected_card == card:
