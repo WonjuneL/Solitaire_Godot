@@ -1,4 +1,5 @@
 extends Node2D
+#Deck.gd는 카드의 생성, 셔플 및 배치에 관한 스크립트
 
 @export var card_scene: PackedScene  # 카드 프리팹
 
@@ -41,7 +42,7 @@ func place_cards():
             var card = card_scene.instantiate()  # 카드 객체 생성
             add_child(card)  # 씬에 추가
             card.set_card_info(card_number)  # 카드 정보 설정
-            card.position = Vector2(i * 100, j * 30)  # 위치 지정
+            card.position = Vector2((2 + 1.5 * i) * Constants.CARD_WIDTH, 200 + j * Constants.CARD_HEIGHT / 4)  # 위치 지정
 
             # 최상단 카드만 앞면으로 설정
             if j == table[i].size() - 1:
