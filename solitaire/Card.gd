@@ -90,5 +90,4 @@ signal clicked  # MoveManager에 보낼 신호 추가
 func _on_card_clicked(viewport, event, shape_idx):
     if event is InputEventMouseButton and event.pressed:
         get_viewport().set_input_as_handled()  # 겹쳐진 카드 중 가장 처음 입력만 받음
-        # 2번 누르는 것을 막는 것으로 보임.
         clicked.emit(self)  # MoveManager에 자신을 알림
