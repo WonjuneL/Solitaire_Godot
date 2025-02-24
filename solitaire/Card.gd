@@ -9,14 +9,10 @@ var is_selected = false  # 카드 선택 여부
 @onready var sprite = $Sprite2D  # 스프라이트 노드
 @onready var MoveManager = get_node("/root/Main/MoveManager")
 @onready var border: ColorRect = $ColorRect  # 테두리 노드 가져오기
-@onready var collision_shape = $CollisionShape2D
-
-func set_selected(selected: bool):
-    border.visible = selected  # 선택되면 보이도록 설정
+@onready var area = $Area2D
+@onready var collision_shape = $Area2D/CollisionShape2D
 
 const CARD_SPRITE_SHEET = "res://full_page.png"  # 카드 이미지
-
-
 
 # 카드 뒷면 좌표
 const BACK_UV_X = 2 + 1 * (Constants.CARD_WIDTH + 2)  # 5번째 열
@@ -28,6 +24,14 @@ func set_card_info(card_num: int):
     suit = ["Hearts", "Clubs", "Diamonds", "Spades"][((card_num - 1) / 13) as int]
     rank = ((card_num - 1) % 13) + 1
     set_face_up(false)  # 기본적으로 뒷면
+
+func is_top_card():     #가장 위 카드인지 검사
+    if get_parent():  # 부모가 존재할 경우만 검사
+        var siblings = get_parent().get_children()  # 같은 그룹의 카드들 가져오기
+        for card in siblings:
+            if card != self and card.z_index > self.z_index:
+                return false  # 나보다 높은 z_index를 가진 카드가 있음
+    return true  # 내가 가장 위에 있음
 
 # 카드 앞/뒷면 설정
 func set_face_up(face_up: bool):
@@ -61,25 +65,30 @@ func _ready():
         MoveManager = get_node(move_manager_path)
 
     # 충돌 영역 자동 설정
-    if collision_shape:
+    if area and collision_shape:
         var rect_shape = RectangleShape2D.new()
-        rect_shape.size = Vector2(Constants.CARD_WIDTH, Constants.CARD_HEIGHT)  # 카드 크기로 설정
-        collision_shape.shape = rect_shape
-        collision_shape.disabled = false  # 충돌 활성화
+        rect_shape.size = Vector2(Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
+        collision_shape.shape = rect_shape  # 카드 크기로 설정
+        collision_shape.position = Vector2.ZERO
+        area.input_pickable = true  # 입력 감지 활성화
+        area.connect("input_event", Callable(self, "_on_card_clicked"))
     else:
-        print("Check CollisionShape.")
+        print("Check CollisionShape2D/Area")
 
     if border:
         border.size = Vector2(Constants.CARD_WIDTH + Constants.BORDER_PADDING, Constants.CARD_HEIGHT + Constants.BORDER_PADDING)
         border.color = Color.GREEN
-        border.position = -border.size / 2  # Sprite2D가 중심 기준이라면 정렬 보정
-        border.modulate.a = 0.5
-        border.visible = false  # 기본적으로 숨김
+        border.position = -border.size / 2  # 위치 보정
+        border.modulate.a = 0.5     #투명도 설정
+        border.visible = false      # 기본적으로 숨김
     else:
         print("Check ColorRect")
+    add_to_group("Cards")
 
-func _input_event(viewport, event, shape_idx):
+signal clicked  # MoveManager에 보낼 신호 추가
+
+func _on_card_clicked(viewport, event, shape_idx):
     if event is InputEventMouseButton and event.pressed:
-        print("Click detected")
-        if MoveManager:
-            MoveManager.card_clicked(self)
+        get_viewport().set_input_as_handled()  # 겹쳐진 카드 중 가장 처음 입력만 받음
+        # 2번 누르는 것을 막는 것으로 보임.
+        clicked.emit(self)  # MoveManager에 자신을 알림
