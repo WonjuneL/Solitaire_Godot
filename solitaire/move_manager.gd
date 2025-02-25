@@ -35,8 +35,8 @@ func _on_card_clicked(card):
             deselect_card()
 
 func can_select(card):
-    # 카드 선택이 가능한지 검사 (예: 최상단 카드인지, 특정 조건을 만족하는지)
-    return card.is_face_up
+    # 카드 선택이 가능한지 검사
+        return card.is_face_up  #보이는 카드이면 선택가능.
 
 func can_move(card_from, card_to):
     # 이동 가능 여부 확인
@@ -44,20 +44,21 @@ func can_move(card_from, card_to):
     if card_from == null:
         print("No card has been selected.")
         return false
-    if card_to == null:
-        #빈 공간에 충돌판정 추가 필요.
+    if card_to.get_card_number() == 0:
         return card_from.is_face_up and card_from.rank == 13
 
     # 숫자가 1 낮고, 색상이 다르면 이동 가능
     # 색이 다르고 숫자가 1 작은 경우만 이동 가능
     else:
-        return (card_from.suit != card_to.suit and card_from.rank == card_to.rank - 1)
-
-
+        return ((abs(card_from.suit - card_to.suit) == 1 or abs(card_from.suit - card_to.suit) == 3) and card_from.rank == card_to.rank - 1)
 
 func select_card(card):
+    if selected_card == card:
+        deselect_card()
+        return
+    deselect_card()
     selected_card = card
-    selected_card.border.visible = true  # 선택된 카드의 테두리 활성화
+    selected_card.border.visible = true
     print("Card selected : ", card)
 
 func deselect_card():
@@ -69,50 +70,20 @@ func deselect_card():
         print("Selected card does not exist.")
 
 func move_card(card_from, card_to):
-    print("카드 이동: ", card_from, " → ", card_to)
+    # 1. 카드 이동
+    card_from.position = card_to.position + Vector2(0, Constants.CARD_OVERLAP)
 
-    var old_parent = card_from.get_parent()  # 이동 전 부모
-    var new_parent = card_to.get_parent()  # 새 부모
+    # 2. prev_card의 face_up 설정 (단, prev_card가 0번 카드가 아닐 경우)
+    if card_from.prev_card != null and card_from.prev_card.get_card_number() != 0:
+        card_from.prev_card.set_face_up(true)
 
-    if new_parent == null:
-        print("이동 실패: target_card의 부모가 없음.")
-        return
-#수정중
-    # 부모 변경
-    card_from.reparent(new_parent)
+    # 3. 연결 관계 변경
+    if card_from.prev_card != null:
+        card_from.prev_card.next_card = null  # 이전 카드의 next_card를 비움
 
+    card_from.prev_card = card_to
+    card_to.next_card = card_from
 
-    # z_index 가장 위로 조정
-    card_from.z_index = get_highest_z_index(new_parent) + 1
-
-    # 기존 부모에서 가장 위 카드가 있으면 face_up
-    if old_parent:
-        var top_card = get_top_card(old_parent)
-        if top_card:
-            top_card.is_face_up = true
-
-    # 강제 화면 갱신
-    card_from.queue_redraw()
-    new_parent.queue_redraw()
-
-    # 선택 해제
-    deselect_card()
-
-
-func get_highest_z_index(parent):
-    var highest_z = -1  # 초기값을 -1로 설정
-    for card in parent.get_children():
-        if card.z_index > highest_z:
-            highest_z = card.z_index
-    return highest_z
-
-func get_top_card(parent):
-    var top_card = null
-    var highest_z = -1  # z_index는 0 이상이므로 -1로 초기화
-
-    for card in parent.get_children():
-        if card.z_index > highest_z:
-            highest_z = card.z_index
-            top_card = card
-
-    return top_card
+    # 4. next_card 확인 후 연쇄 이동 수행
+    if card_from.next_card != null:
+        move_card(card_from.next_card, card_from)

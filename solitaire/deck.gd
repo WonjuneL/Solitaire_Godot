@@ -37,13 +37,36 @@ func deal_cards():
 # 4. 카드 씬을 생성하여 배치
 func place_cards():
     for i in range(7):
+        # 0번 카드를 빈 공간용으로 추가
+        var empty_card = card_scene.instantiate()
+        add_child(empty_card)
+        empty_card.set_card_info(0)  # 0번 카드로 설정
+        empty_card.position = Vector2((2 + 1.5 * i) * Constants.CARD_WIDTH, 200)
+        empty_card.set_face_up(false)  # 빈 카드 자체는 비공개 (투명 또는 회색 카드)
+
+        var prev_card = empty_card  # 첫 번째 prev_card를 0번 카드로 설정
+        var top_card = null  # 스택의 최상단 카드 추적
+
         for j in range(table[i].size()):
             var card_number = table[i][j]  # 저장된 카드 번호 가져오기
             var card = card_scene.instantiate()  # 카드 객체 생성
             add_child(card)  # 씬에 추가
             card.set_card_info(card_number)  # 카드 정보 설정
-            card.position = Vector2((2 + 1.5 * i) * Constants.CARD_WIDTH, 200 + j * Constants.CARD_OVERLAP)  # 위치 지정
 
-            # 최상단 카드만 앞면으로 설정
-            if j == table[i].size() - 1:
-                card.set_face_up(true)
+            # 0번 카드 위에 배치해야 하는 경우
+            if prev_card.get_card_number() == 0:
+                card.position = empty_card.position  # 0번 카드와 같은 위치
+            else:
+                card.position = Vector2((2 + 1.5 * i) * Constants.CARD_WIDTH, 200 + j * Constants.CARD_OVERLAP)  # 위치 지정
+
+            # prev_card가 존재하면 연결
+            if prev_card:
+                prev_card.set_next_card(card)
+                card.set_prev_card(prev_card)
+
+            prev_card = card  # 현재 카드를 prev_card로 설정
+            top_card = card  # 최상단 카드 저장
+
+        # 루프 종료 후, 최상단 카드는 앞면 공개
+        if top_card and top_card.get_next_card() == null:
+            top_card.set_face_up(true)

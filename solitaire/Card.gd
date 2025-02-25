@@ -1,7 +1,7 @@
 extends Node2D
 #Card.gd는 카드의 텍스쳐를 지정하는 스크립트
 @export var card_number: int = 0  # 카드 번호 (1~52)
-var suit: String = ""  # 카드 무늬 (Hearts, Diamonds, Clubs, Spades)
+var suit: int = 0  # 카드 무늬 (Hearts 1, Clubs 2, Diamonds 3, Spades 4)
 var rank: int = 0  # 카드 숫자 (1~13, Ace=1)
 var is_face_up: bool = false  # 앞면 상태 여부
 var is_selected = false  # 카드 선택 여부
@@ -21,9 +21,27 @@ const BACK_UV_Y = 2 + 4 * (Constants.CARD_HEIGHT + 2)  # 2번째 행
 # 카드 정보 설정
 func set_card_info(card_num: int):
     card_number = card_num
-    suit = ["Hearts", "Clubs", "Diamonds", "Spades"][((card_num - 1) / 13) as int]
+    suit = ((card_num-1) / 13) + 1
     rank = ((card_num - 1) % 13) + 1
     set_face_up(false)  # 기본적으로 뒷면
+
+# 카드 번호 반환 함수 (추가)
+func get_card_number() -> int:
+    return card_number
+
+# 카드의 전, 후 카드 확
+var prev_card = null
+var next_card = null
+
+func set_prev_card(card):
+    prev_card = card
+func set_next_card(card):
+    next_card = card
+
+func get_prev_card():
+    return prev_card
+func get_next_card():
+    return next_card
 
 func is_top_card():     #가장 위 카드인지 검사
     if get_parent():  # 부모가 존재할 경우만 검사
@@ -40,7 +58,7 @@ func set_face_up(face_up: bool):
     texture.atlas = load(CARD_SPRITE_SHEET)
 
     if is_face_up:
-        var suit_index = ["Hearts", "Clubs", "Diamonds", "Spades"].find(suit)
+        var suit_index = (suit - 1)
         var rank_index = (rank - 1)  # A=1, 2=2, ..., K=13
 
         # **카드 스프라이트의 정확한 열, 행 계산**
