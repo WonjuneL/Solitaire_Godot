@@ -22,12 +22,12 @@ func _on_card_clicked(card):
     else:   #카드가 선택되어 있는 경우
         if can_select(card) and card.next_card == null: # 목표 카드에 next_card가 없는 경우에만 이동 가능
             target_card = card
-            print("Target card selected.", target_card)
+            print("Target card :", target_card)
         else:
-            print("Check the card.")
+            print("Can't move there.")
         if selected_card == card:
-                print("Deselected.")
                 deselect_card()
+                print("Deselected.")
         if can_move(selected_card, target_card):
             move_card(selected_card, target_card)  # 이동 수행
         else :
@@ -81,8 +81,12 @@ func move_card(card_from, card_to):
     # 1. 카드 이동
     if card_to.is_foundation:
         card_from.position = card_to.position
+
     else:
-        card_from.position = card_to.position + Vector2(0, Constants.CARD_OVERLAP)
+        if card_from.rank == 13:  #K가 움직이는 유일한 경우는 빈 공간으로 이동할 때이므로, 해당 자리에 배치한다.
+            card_from.position = card_to.position
+        else:
+            card_from.position = card_to.position + Vector2(0, Constants.CARD_OVERLAP)
 
     # 2. prev_card의 face_up 설정 (단, prev_card가 0번 카드가 아닐 경우)
     if card_from.prev_card.get_card_number() != -1 and card_from.prev_card.get_card_number() != 0:

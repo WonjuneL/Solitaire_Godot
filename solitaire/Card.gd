@@ -61,6 +61,8 @@ func set_face_up(face_up: bool):
     is_face_up = face_up
     var texture = AtlasTexture.new()
     texture.atlas = load(CARD_SPRITE_SHEET)
+    if card_number == 0 :    # 이동/이동 목표 설정 불가능한 0번 카드 (투명함)
+        texture.region = Rect2(BACK_UV_X, BACK_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
     if card_number == -1 :    # 이동/이동 목표 설정 불가능한 -1번 카드 (뒷면 스프라이트 이용)
         texture.region = Rect2(BACK_UV_X, BACK_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
     if card_number == -2 :    # 이동/이동 목표 설정 불가능한 -2번 카드 (뒷면 스프라이트 이용)

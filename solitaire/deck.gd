@@ -44,6 +44,7 @@ func place_cards():
         add_child(empty_card)
         empty_card.set_card_info(0)  # 0번 카드로 설정
         empty_card.position = Vector2(Constants.CARD_TABLE_X + i * Constants.CARD_OFFSET_X, Constants.CARD_TABLE_Y)
+        empty_card.set_face_up(true)  #선택가능하게 함
 
         var prev_card = empty_card  # 첫 번째 prev_card를 0번 카드로 설정
         var top_card = null  # 스택의 최상단 카드 추적
