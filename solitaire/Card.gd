@@ -15,8 +15,13 @@ var is_selected = false  # 카드 선택 여부
 const CARD_SPRITE_SHEET = "res://full_page.png"  # 카드 이미지
 
 # 카드 뒷면 좌표
-const BACK_UV_X = 2 + 1 * (Constants.CARD_WIDTH + 2)  # 5번째 열
-const BACK_UV_Y = 2 + 4 * (Constants.CARD_HEIGHT + 2)  # 2번째 행
+const BACK_UV_X = 2 + 1 * (Constants.CARD_WIDTH + 2)  # 2번째 행
+const BACK_UV_Y = 2 + 4 * (Constants.CARD_HEIGHT + 2)  # 5번째 열
+
+#조커
+const JOCKER_UV_X = 2 + 2 * (Constants.CARD_WIDTH + 2)  #3행
+const JOCKER_UV_Y = 2 + 4 * (Constants.CARD_HEIGHT + 2) #5열
+
 
 # 카드 정보 설정
 func set_card_info(card_num: int):
@@ -56,25 +61,26 @@ func set_face_up(face_up: bool):
     is_face_up = face_up
     var texture = AtlasTexture.new()
     texture.atlas = load(CARD_SPRITE_SHEET)
-
-    if is_face_up:
-        var suit_index = (suit - 1)
-        var rank_index = (rank - 1)  # A=1, 2=2, ..., K=13
+    if card_number == -1 :    # 이동/이동 목표 설정 불가능한 -1번 카드 (뒷면 스프라이트 이용)
+        texture.region = Rect2(BACK_UV_X, BACK_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
+    if card_number == -2 :    # 이동/이동 목표 설정 불가능한 -2번 카드 (뒷면 스프라이트 이용)
+        texture.region = Rect2(JOCKER_UV_X, JOCKER_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
+    else :
+        if is_face_up:
+            var suit_index = (suit - 1)
+            var rank_index = (rank - 1)  # A=1, 2=2, ..., K=13
 
         # **카드 스프라이트의 정확한 열, 행 계산**
-        var column = (rank_index % 3) + (suit_index * 3)  # suit마다 그룹 배치
-        var row = rank_index / 3  # 행 계산
+            var column = (rank_index % 3) + (suit_index * 3)  # suit마다 그룹 배치
+            var row = rank_index / 3  # 행 계산
 
-        var x = 2 + column * (Constants.CARD_WIDTH + 2)
-        var y = 2 + row * (Constants.CARD_HEIGHT + 2)
+            var x = 2 + column * (Constants.CARD_WIDTH + 2)
+            var y = 2 + row * (Constants.CARD_HEIGHT + 2)
 
-        texture.region = Rect2(x, y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
-    else:
-        texture.region = Rect2(BACK_UV_X, BACK_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
-
+            texture.region = Rect2(x, y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
+        else:
+            texture.region = Rect2(BACK_UV_X, BACK_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
     sprite.texture = texture  # 스프라이트에 텍스처 적용
-
-
 
 func _ready():
     # MoveManager 노드 찾기
@@ -109,3 +115,8 @@ func _on_card_clicked(viewport, event, shape_idx):
     if event is InputEventMouseButton and event.pressed:
         get_viewport().set_input_as_handled()  # 겹쳐진 카드 중 가장 처음 입력만 받음
         clicked.emit(self)  # MoveManager에 자신을 알림
+
+var is_foundation = false  # 기본적으로 일반 카드 (파운데이션 아님)
+
+func set_foundation(flag: bool):
+    is_foundation = flag

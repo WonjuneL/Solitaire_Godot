@@ -19,8 +19,8 @@ func _on_card_clicked(card):
         else:
             print("Check the card.")
         # 두 번째 클릭이면 target_card로 설정
-    else:
-        if can_select(card):
+    else:   #카드가 선택되어 있는 경우
+        if can_select(card) and card.next_card == null: # 목표 카드에 next_card가 없는 경우에만 이동 가능
             target_card = card
             print("Target card selected.", target_card)
         else:
@@ -40,13 +40,21 @@ func can_select(card):
 
 func can_move(card_from, card_to):
     # 이동 가능 여부 확인
-    # 빈 칸에 놓는 경우 → 킹(K)만 가능
     if card_from == null:
         print("No card has been selected.")
         return false
+    if card_to == null:
+        print("Null destination.")
+        return false
     if card_to.get_card_number() == 0:
         return card_from.is_face_up and card_from.rank == 13
-
+    if card_to.get_card_number() == -1:
+        return false
+    if card_to.get_card_number() == -2:     #파운데이션 이동
+        card_from.set_foundation(true) #파운데이션 플래그 활성화
+        return card_from.is_face_up and card_from.rank == 1
+    if card_to.is_foundation:
+        return card_from.is_face_up and card_from.next_card == null and card_from.rank == card_to.rank + 1 and card_from.suit == card_to.suit
     # 숫자가 1 낮고, 색상이 다르면 이동 가능
     # 색이 다르고 숫자가 1 작은 경우만 이동 가능
     else:
@@ -71,10 +79,13 @@ func deselect_card():
 
 func move_card(card_from, card_to):
     # 1. 카드 이동
-    card_from.position = card_to.position + Vector2(0, Constants.CARD_OVERLAP)
+    if card_to.is_foundation:
+        card_from.position = card_to.position
+    else:
+        card_from.position = card_to.position + Vector2(0, Constants.CARD_OVERLAP)
 
     # 2. prev_card의 face_up 설정 (단, prev_card가 0번 카드가 아닐 경우)
-    if card_from.prev_card != null and card_from.prev_card.get_card_number() != 0:
+    if card_from.prev_card.get_card_number() != -1 and card_from.prev_card.get_card_number() != 0:
         card_from.prev_card.set_face_up(true)
 
     # 3. 연결 관계 변경
@@ -84,6 +95,11 @@ func move_card(card_from, card_to):
     card_from.prev_card = card_to
     card_to.next_card = card_from
 
+    # 4. 렌더링 순서 조정 (move_child 사용)
+    var parent = card_from.get_parent()
+    parent.move_child(card_from, -1)
+
     # 4. next_card 확인 후 연쇄 이동 수행
     if card_from.next_card != null:
         move_card(card_from.next_card, card_from)
+    deselect_card()
