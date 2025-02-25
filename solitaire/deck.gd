@@ -44,7 +44,8 @@ func place_cards():
         add_child(empty_card)
         empty_card.set_card_info(0)  # 0번 카드로 설정
         empty_card.position = Vector2(Constants.CARD_TABLE_X + i * Constants.CARD_OFFSET_X, Constants.CARD_TABLE_Y)
-        empty_card.set_face_up(true)  #선택가능하게 함
+        empty_card.get_node("Area2D/CollisionShape2D").set_deferred("disabled", true)
+        empty_card.set_face_up(true)
 
         var prev_card = empty_card  # 첫 번째 prev_card를 0번 카드로 설정
         var top_card = null  # 스택의 최상단 카드 추적
@@ -90,27 +91,8 @@ func setup_stock():
     # 스톡 카드 배치
     stock_switch = card_scene.instantiate()
     add_child(stock_switch)
-    stock_switch.set_card_info(-1)  # 가짜 카드
+    stock_switch.set_card_info(-1)  # 스톡 뒷면 카드
     stock_switch.position = Vector2(Constants.CARD_TABLE_X, Constants.CARD_TABLE_Y - Constants.CARD_HEIGHT * 2)
+    stock_switch.set_face_up(true)
 
-    # 클릭 이벤트 연결
-
-func _on_stock_switch_pressed():
-    var stock_top_card = 0
-    if stock.size() > 0:
-        var card_number = stock.pop_back()
-        var new_card = card_scene.instantiate()
-        add_child(new_card)
-        new_card.set_card_info(card_number)
-        new_card.position = Vector2(4 * Constants.CARD_WIDTH, Constants.CARD_HEIGHT * 0.5)
-        new_card.set_face_up(true)
-
-        # prev_card 설정 (이전에 뽑힌 카드와 연결)
-        if stock_top_card:
-            new_card.prev_card = stock_top_card
-
-        stock_top_card = new_card  # 새로 뽑은 카드를 최상단으로 설정
-
-    # 스톡이 비었을 경우, 뒷면 카드 숨기거나 색상 변경
-    if stock.size() == 0:
-        stock_switch.visible = false
+var stock_card = null #현재 깔려 있는 스톡 카드

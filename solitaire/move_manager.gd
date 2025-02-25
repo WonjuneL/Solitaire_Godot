@@ -12,7 +12,7 @@ func _ready():
             print("Card without signal: ", card)
 
 func _on_card_clicked(card):
-    print("Clicked : ", card)
+    print("Clicked : ", card.get_card_number())
     if selected_card == null:
         if can_select(card):
             select_card(card)
@@ -22,9 +22,10 @@ func _on_card_clicked(card):
     else:   #카드가 선택되어 있는 경우
         if can_select(card) and card.next_card == null: # 목표 카드에 next_card가 없는 경우에만 이동 가능
             target_card = card
-            print("Target card :", target_card)
+            print("Target card :", target_card.get_card_number())
         else:
-            print("Can't move there.")
+            print("Target is not the last card of stack.")
+            deselect_card()
         if selected_card == card:
                 deselect_card()
                 print("Deselected.")
@@ -36,23 +37,30 @@ func _on_card_clicked(card):
 
 func can_select(card):
     # 카드 선택이 가능한지 검사
-        return card.is_face_up  #보이는 카드이면 선택가능.
+    return card.is_face_up  #보이는 카드이면 선택가능.
 
 func can_move(card_from, card_to):
     # 이동 가능 여부 확인
     if card_from == null:
-        print("No card has been selected.")
+        print("No card has been selected.(canmove)")
         return false
     if card_to == null:
-        print("Null destination.")
+        print("Null destination.(canmove)")
         return false
     if card_to.get_card_number() == 0:
-        return card_from.is_face_up and card_from.rank == 13
+        if card_from.is_face_up and card_from.rank == 13:
+            card_to.get_node("Area2D/CollisionShape2D").set_deferred("disabled", true)
+            return true
+        else:
+            print("Slot is not empty(canmove)")
     if card_to.get_card_number() == -1:
         return false
-    if card_to.get_card_number() == -2:     #파운데이션 이동
-        card_from.set_foundation(true) #파운데이션 플래그 활성화
-        return card_from.is_face_up and card_from.rank == 1
+    if card_to.get_card_number() == -2:  # 파운데이션 이동
+        if card_from.is_face_up and card_from.rank == 1:
+            card_from.set_foundation(true)  # 조건 만족 시에만 파운데이션 플래그 활성화
+            return true
+        else:
+            return false
     if card_to.is_foundation:
         return card_from.is_face_up and card_from.next_card == null and card_from.rank == card_to.rank + 1 and card_from.suit == card_to.suit
     # 숫자가 1 낮고, 색상이 다르면 이동 가능
@@ -67,24 +75,25 @@ func select_card(card):
     deselect_card()
     selected_card = card
     selected_card.border.visible = true
-    print("Card selected : ", card)
+    print("Card selected : ", card.get_card_number())
 
 func deselect_card():
     if selected_card:
         selected_card.border.visible = false  # 선택 해제 시 테두리 숨김
-        print("Card deselected : ", selected_card)
+        print("Card deselected : ", selected_card.get_card_number())
         selected_card = null
     else:
-        print("Selected card does not exist.")
+        print("Selected card does not exist.(deselect)")
 
 func move_card(card_from, card_to):
     # 1. 카드 이동
     if card_to.is_foundation:
         card_from.position = card_to.position
-
+        card_to.get_node("Area2D/CollisionShape2D").set_deferred("disabled", true) #파운데이션에 넣은 카드 중 밑에 깔리는 부분은 충돌판정을 비활성화한다.
     else:
         if card_from.rank == 13:  #K가 움직이는 유일한 경우는 빈 공간으로 이동할 때이므로, 해당 자리에 배치한다.
             card_from.position = card_to.position
+            card_to.get_node("Area2D/CollisionShape2D").set_deferred("disabled", true)  # 이 위치에 이동시 0 카드를 비활성화한다.
         else:
             card_from.position = card_to.position + Vector2(0, Constants.CARD_OVERLAP)
 
@@ -96,6 +105,11 @@ func move_card(card_from, card_to):
     if card_from.prev_card != null:
         card_from.prev_card.next_card = null  # 이전 카드의 next_card를 비움
 
+    if card_from.prev_card.get_card_number() == 0:      #옮기는 카드 밑의 카드가 0인 경우, collisionshape를 활성화해준다.
+        card_from.prev_card.get_node("Area2D/CollisionShape2D").set_deferred("disabled", false)
+    if card_to.get_card_number() == 0:                  #목표 카드가 0인 경우, collisionshape를 비활성화해준다.
+        card_to.get_node("Area2D/CollisionShape2D").set_deferred("disabled", true)
+
     card_from.prev_card = card_to
     card_to.next_card = card_from
 
@@ -106,4 +120,4 @@ func move_card(card_from, card_to):
     # 4. next_card 확인 후 연쇄 이동 수행
     if card_from.next_card != null:
         move_card(card_from.next_card, card_from)
-    deselect_card()
+    deselect_card()     #이동 완료 후 선택 자동으로 해제

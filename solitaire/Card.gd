@@ -18,6 +18,8 @@ const CARD_SPRITE_SHEET = "res://full_page.png"  # 카드 이미지
 const BACK_UV_X = 2 + 1 * (Constants.CARD_WIDTH + 2)  # 2번째 행
 const BACK_UV_Y = 2 + 4 * (Constants.CARD_HEIGHT + 2)  # 5번째 열
 
+const BACK_K_UV_X = 2 + 11 * (Constants.CARD_WIDTH + 2)  # 2번째 행
+const BACK_K_UV_Y = 2 + 4 * (Constants.CARD_HEIGHT + 2)  # 5번째 열
 #조커
 const JOCKER_UV_X = 2 + 2 * (Constants.CARD_WIDTH + 2)  #3행
 const JOCKER_UV_Y = 2 + 4 * (Constants.CARD_HEIGHT + 2) #5열
@@ -48,24 +50,16 @@ func get_prev_card():
 func get_next_card():
     return next_card
 
-func is_top_card():     #가장 위 카드인지 검사
-    if get_parent():  # 부모가 존재할 경우만 검사
-        var siblings = get_parent().get_children()  # 같은 그룹의 카드들 가져오기
-        for card in siblings:
-            if card != self and card.z_index > self.z_index:
-                return false  # 나보다 높은 z_index를 가진 카드가 있음
-    return true  # 내가 가장 위에 있음
-
 # 카드 앞/뒷면 설정
 func set_face_up(face_up: bool):
     is_face_up = face_up
     var texture = AtlasTexture.new()
     texture.atlas = load(CARD_SPRITE_SHEET)
-    if card_number == 0 :    # 이동/이동 목표 설정 불가능한 0번 카드 (투명함)
+    if card_number == 0 :    # 빈 스택 표시용 0번 카드 (뒷면 스프라이트 이용)
+        texture.region = Rect2(BACK_K_UV_X, BACK_K_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
+    elif card_number == -1 :    # 덱 표시용 -1번 카드 (뒷면 스프라이트 이용)
         texture.region = Rect2(BACK_UV_X, BACK_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
-    if card_number == -1 :    # 이동/이동 목표 설정 불가능한 -1번 카드 (뒷면 스프라이트 이용)
-        texture.region = Rect2(BACK_UV_X, BACK_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
-    if card_number == -2 :    # 이동/이동 목표 설정 불가능한 -2번 카드 (뒷면 스프라이트 이용)
+    elif card_number == -2 :    # 파운데이션 위치 표시용 -2번 카드 (뒷면 스프라이트 이용)
         texture.region = Rect2(JOCKER_UV_X, JOCKER_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
     else :
         if is_face_up:
@@ -80,8 +74,12 @@ func set_face_up(face_up: bool):
             var y = 2 + row * (Constants.CARD_HEIGHT + 2)
 
             texture.region = Rect2(x, y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
+            # 콜리전 활성화
+            $Area2D/CollisionShape2D.set_deferred("disabled", false)
         else:
             texture.region = Rect2(BACK_UV_X, BACK_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
+            # 콜리전 비활성화
+            $Area2D/CollisionShape2D.set_deferred("disabled", true)
     sprite.texture = texture  # 스프라이트에 텍스처 적용
 
 func _ready():
