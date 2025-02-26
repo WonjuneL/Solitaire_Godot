@@ -44,7 +44,7 @@ func place_cards():
         add_child(empty_card)
         empty_card.set_card_info(0)  # 0번 카드로 설정
         empty_card.position = Vector2(Constants.CARD_TABLE_X + i * Constants.CARD_OFFSET_X, Constants.CARD_TABLE_Y)
-        empty_card.get_node("Area2D/CollisionShape2D").set_deferred("disabled", true)
+        empty_card.get_node("Area2D/CollisionShape2D").set_deferred("disabled", true)   #덱에서는 반드시 0번 위에 카드가 존재하므로 확인할 것 없이 충돌판정을 제거
         empty_card.set_face_up(true)
 
         var prev_card = empty_card  # 첫 번째 prev_card를 0번 카드로 설정
@@ -55,8 +55,8 @@ func place_cards():
             var card = card_scene.instantiate()  # 카드 객체 생성
             add_child(card)  # 씬에 추가
             card.set_card_info(card_number)  # 카드 정보 설정
-
-            # 0번 카드 위에 배치해야 하는 경우
+            card.get_node("Area2D/CollisionShape2D").set_deferred("disabled", true) #우선은 모두 충돌 판정이 없는 상태로
+            # 0번 카드 위에 배치해야 하는 경우 == 첫 배치
             if prev_card.get_card_number() == 0:
                 card.position = empty_card.position  # 0번 카드와 같은 위치
             else:
@@ -67,12 +67,14 @@ func place_cards():
                 prev_card.set_next_card(card)
                 card.set_prev_card(prev_card)
 
+
             prev_card = card  # 현재 카드를 prev_card로 설정
             top_card = card  # 최상단 카드 저장
 
         # 루프 종료 후, 최상단 카드는 앞면 공개
         if top_card and top_card.get_next_card() == null:
             top_card.set_face_up(true)
+            top_card.get_node("Area2D/CollisionShape2D").set_deferred("disabled", false)  #콜리전 활성
 
     setup_stock()
 
@@ -83,16 +85,34 @@ func place_cards():
         empty_card.set_card_info(-2)  # 0번 카드로 설정
         empty_card.position = Vector2(Constants.CARD_TABLE_X + Constants.CARD_WIDTH * 4.5 + Constants.CARD_OFFSET_X * i, Constants.CARD_TABLE_Y - Constants.CARD_HEIGHT * 2)
         empty_card.set_face_up(true)
+        empty_card.get_node("Area2D/CollisionShape2D").set_deferred("disabled", false) #콜리전 활성화
         empty_card.set_foundation(true)
 
-var stock_switch
+
 
 func setup_stock():
     # 스톡 카드 배치
-    stock_switch = card_scene.instantiate()
+    var prev_card = null
+    var stock_switch = card_scene.instantiate()
+
+    for i in range(stock.size()):
+        var card_number = stock.pop_front()  # 스톡에서 카드 번호 가져오기
+        var card = card_scene.instantiate()  # 카드 객체 생성
+        add_child(card)
+        card.set_card_info(card_number)  # 카드 정보 설정
+        card.position = Constants.STOCK_POSITION
+        card.set_face_up(true)
+        card.get_node("Area2D/CollisionShape2D").set_deferred("disabled", true) #기본적으로는 모두 충돌 판정이 해제된 상태
+        if prev_card:
+            card.set_prev_card(prev_card)
+            card.prev_card.set_next_card(card)  #앞뒤 카드의 연결
+        if card.next_card == null:
+            card.next_card = stock_switch
+        prev_card = card
+        stock_switch.set_prev_card(card)    #마지막에 배치된 카드를 prev_card로 스위치가 지님.
+
+
     add_child(stock_switch)
     stock_switch.set_card_info(-1)  # 스톡 뒷면 카드
-    stock_switch.position = Vector2(Constants.CARD_TABLE_X, Constants.CARD_TABLE_Y - Constants.CARD_HEIGHT * 2)
+    stock_switch.position = Constants.STOCK_POSITION
     stock_switch.set_face_up(true)
-
-var stock_card = null #현재 깔려 있는 스톡 카드

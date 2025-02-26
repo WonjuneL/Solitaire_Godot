@@ -10,9 +10,5 @@
 script = ExtResource("1_gwbhi")
 card_scene = ExtResource("2_kugfw")
 
-[node name="CardContainer" type="Node2D" parent="."]
-
-[node name="Stock" type="Node2D" parent="."]
-
 [node name="MoveManager" type="Node2D" parent="."]
 script = ExtResource("3_8o37m")
