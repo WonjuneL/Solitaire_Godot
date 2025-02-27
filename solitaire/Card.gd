@@ -24,6 +24,7 @@ func set_card_info(card_num: int):
     rank = ((card_num - 1) % 13) + 1
     set_face_up(false)  # 기본적으로 뒷면
 
+
 # 카드 번호 반환 함수 (추가)
 func get_card_number() -> int:
     return card_number
@@ -55,6 +56,7 @@ func set_face_up(face_up: bool):
         texture.region = Rect2(Constants.JOCKER_UV_X, Constants.JOCKER_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
     else :
         if is_face_up:
+            #get_node("Area2D/CollisionShape2D").set_deferred("disabled", false)
             var suit_index = (suit - 1)
             var rank_index = (rank - 1)  # A=1, 2=2, ..., K=13
 
@@ -68,11 +70,14 @@ func set_face_up(face_up: bool):
             texture.region = Rect2(x, y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
         else:
             texture.region = Rect2(Constants.BACK_UV_X, Constants.BACK_UV_Y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
+            #get_node("Area2D/CollisionShape2D").set_deferred("disabled", true) #collision 비활성화
+
     sprite.texture = texture  # 스프라이트에 텍스처 적용
 
 
 
 func _ready():
+    z_index = 1
     # MoveManager 노드 찾기
     var move_manager_path = "/root/Main/MoveManager"
     if has_node(move_manager_path):
@@ -101,10 +106,10 @@ func _ready():
 
 signal clicked  # MoveManager에 보낼 신호 추가
 
-func _on_card_clicked(viewport, event, shape_idx):
+func _on_card_clicked(_viewport, event, _shape_idx):
     if event is InputEventMouseButton and event.pressed:
-        get_viewport().set_input_as_handled()  # 겹쳐진 카드 중 가장 처음 입력만 받음
         clicked.emit(self)  # MoveManager에 자신을 알림
+
 
 var is_foundation = false  # 기본적으로 일반 카드 (파운데이션 아님)
 
