@@ -68,6 +68,12 @@ func highest_z_index_card(clicked_cards):
 
 func can_move(card_from, card_to):  #일반적인 이동에 관여.
     # 이동 가능 여부 확인
+
+    #디버깅
+    if card_from.get_card_number() and card_to.get_card_number():
+        print("check move " ,card_from.get_card_number(), " to ", card_to.get_card_number())
+
+
     if card_from == null:
         print("Card_from is null.(canmove)")
         return false
@@ -75,16 +81,14 @@ func can_move(card_from, card_to):  #일반적인 이동에 관여.
         print("Null destination.(canmove)")
         return false
     if card_to.get_card_number() == 0:
-        print("card_to is 0 (canmove)")
-        if card_from.is_face_up and card_from.rank == 13:
-            return true
-        else:
-            print("Slot is not empty(canmove)")
+        print("tried to move to 0 : ", card_from.rank == 13)
+        return card_from.rank == 13
+
     if card_to.get_card_number() == -1:
         print("Can't move to stock. (canmove)")
         return false
     if card_to.get_card_number() == -2:  # 파운데이션 이동
-        print("to foundation, first (canmove)")
+        print("to foundation, first card (canmove)")
         if card_from.is_face_up and card_from.rank == 1:
             card_from.set_foundation(true)  # 조건 만족 시에만 파운데이션 플래그 활성화
             return true
@@ -92,7 +96,10 @@ func can_move(card_from, card_to):  #일반적인 이동에 관여.
             print("Unknown issue(canmove)")
             return false
     if card_to.is_foundation:
-        print("Foundation, again")
+        print("Foundation")
+        if card_from == stock_last_card:
+            print("stock to foundation(not a ace card)")
+            return card_from.rank == card_to.rank + 1 and card_from.suit == card_to.suit    #카드가 스톡에서 오는 경우, next_card조건을 보지 않고 이동을 허가.(어차피 이동시에 next_card가 정리됨)
         return card_from.is_face_up and card_from.next_card == null and card_from.rank == card_to.rank + 1 and card_from.suit == card_to.suit
     # 숫자가 1 낮고, 색상이 다르면 이동 가능
     # 색이 다르고 숫자가 1 작은 경우만 이동 가능
@@ -137,7 +144,7 @@ func move_card(card_from, card_to):
         card_from.position = card_to.position
         #card_to.get_node("Area2D/CollisionShape2D").set_deferred("disabled", true) #파운데이션에 넣은 카드 중 밑에 깔리는 부분은 충돌판정을 비활성화한다.
         card_from.set_foundation(true)
-        print("card is at foundation now", card_from.prev_card.get_card_number())
+        print("card is at foundation now : ", card_from.get_card_number())
 
     elif card_from.rank == 13:  #K가 움직이는 유일한 경우는 빈 공간으로 이동할 때이므로, 해당 자리에 배치한다.
         card_from.position = card_to.position
@@ -151,21 +158,19 @@ func move_card(card_from, card_to):
         #card_from.prev_card.get_node("Area2D/CollisionShape2D").set_deferred("disabled", false)
 
     # 3. 연결 관계 변경
-
-    if card_from != stock_last_card:    #스톡에서는 예외처리 필요
-        card_from.prev_card.next_card = null  # 이전 카드의 next_card를 비움
-    elif card_from == stock_last_card:
+    if card_from == stock_last_card:
         if stock_last_card.next_card:
             stock_last_card.next_card.prev_card = stock_last_card.prev_card
             stock_last_card.prev_card.next_card = stock_last_card.next_card
             stock_last_card = stock_last_card.next_card
-
         else:
             stock_last_card = null
         card_from.next_card = null  #스톡에서 꺼낸 카드의 nextcard는 항상 비어있음.
 
-    #z_index 처리
-    card_from.z_index = card_to.z_index + 1
+    else:
+        card_from.prev_card.next_card = null  # 이전 카드의 next_card를 비움
+
+    card_to.next_card = card_from   #card_from을 card_to의 next_card에 기록
 
     #if card_from.prev_card.get_card_number() == 0:      #옮기는 카드 밑의 카드가 0인 경우, collisionshape를 활성화해준다.
         #card_from.prev_card.get_node("Area2D/CollisionShape2D").set_deferred("disabled", false)
@@ -174,18 +179,17 @@ func move_card(card_from, card_to):
 
 
 
-    # 4. 렌더링 순서 조정 (move_child 사용)
-    var parent = card_from.get_parent()
-    parent.move_child(card_from, -1)
+    # 4. 렌더링 순서 조정
+    #var parent = card_from.get_parent()
+    #parent.move_child(card_from, -1)
+
+    #z_index 처리
+    card_from.z_index = card_to.z_index + 1
 
     # 4. next_card 확인 후 연쇄 이동 수행
     if card_from.next_card != null:
-        if can_move(card_from.next_card, card_from):
+        if can_move(card_from.next_card, card_from):    #항상 가능하겠지만 검사하고 호출.
             move_card(card_from.next_card, card_from)
-            card_from.prev_card = card_to
-            card_to.next_card = card_from
-        else:
-            return  #이동 불가능한 경우 그냥 취소
     deselect_card()     #이동 완료 후 선택 자동으로 해제
 
 func draw_stock(card):
