@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 Constants="*res://constants.gd"
 ResourceManager="*res://Module/resource_manager.gd"
+SpriteManager="*res://Sprite_manager.gd"
 
 [rendering]
 

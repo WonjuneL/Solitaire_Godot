@@ -1,6 +1,6 @@
 extends Node
 
-const CARD_SPRITE_SHEET = "res://textures/cards.png"  # 카드 스프라이트 시트 경로
+const CARD_SPRITE_SHEET = Constants.texture_path  # 카드 스프라이트 시트 경로
 var atlas_texture: AtlasTexture = null  # 카드 텍스처 저장용
 
 # 카드 뒷면 좌표
@@ -17,13 +17,14 @@ const JOKER_UV_Y = 2 + 4 * (Constants.CARD_HEIGHT + 2)  # 5번째 열
 
 func _ready():
     atlas_texture = load(CARD_SPRITE_SHEET)  # 스프라이트 시트 로드
+    atlas_texture = AtlasTexture.new()
+
 
 # 카드의 UV 좌표 계산
 func get_card_uv(rank_index: int, suit_index: int) -> Vector2:
     var column = (rank_index % 3) + (suit_index * 3)  # suit마다 그룹 배치
     var row = rank_index / 3  # 행 계산
-    return Vector2(2 + column * (Constants.CARD_WIDTH + 2),
-                   2 + row * (Constants.CARD_HEIGHT + 2))
+    return Vector2(2 + column * (Constants.CARD_WIDTH + 2), 2 + row * (Constants.CARD_HEIGHT + 2))
 
 # 특정 카드의 스프라이트 설정
 func set_card_texture(sprite: Sprite2D, card_number: int):

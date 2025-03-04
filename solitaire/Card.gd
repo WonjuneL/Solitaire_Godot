@@ -11,11 +11,7 @@ var is_face_up: bool = false  # 앞면 상태 여부
 var is_selected = false  # 카드 선택 여부
 var suit_names = ["Hearts", "Clubs", "Diamonds", "Spades"]
 
-@onready var sprite = $Sprite2D  # 스프라이트 노드
 @onready var MoveManager = get_node("/root/Main/MoveManager")
-@onready var border: ColorRect = $ColorRect  # 테두리 노드 가져오기
-@onready var area = $Area2D
-@onready var collision_shape = $Area2D/CollisionShape2D
 
 # 카드 정보 설정
 func set_card_info(card_num: int):

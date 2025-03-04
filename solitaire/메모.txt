@@ -5,9 +5,9 @@
     이동 시 때로 next_card의 설정이 안 됨
 작업 중
     스톡 리필 함수(보류)
-    model : card의 정보 저장
-    view : 스프라이트 매니저를 통해 card의 정보를 얻어와서 출력
-    control : deck(처음), move_manager(이후)를 통해 model의 정보 변경
+    model : card의 정보 저장/deck에서 카드 정보 저장
+    view : main, sprite_manager를 통해 card의 정보를 얻어와서 출력
+    control : move_manager를 통해 model의 정보 변경
 
     리소스 매니저를 통해 리소스에 텍스쳐 파일 로드 후 이용
 
