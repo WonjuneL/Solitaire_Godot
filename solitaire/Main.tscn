@@ -12,3 +12,5 @@ card_scene = ExtResource("2_kugfw")
 
 [node name="MoveManager" type="Node2D" parent="."]
 script = ExtResource("3_8o37m")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
