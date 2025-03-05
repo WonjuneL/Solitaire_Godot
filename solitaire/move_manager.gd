@@ -6,8 +6,7 @@ var stock_last_card = null
 var clicked_cards := []
 
 func _ready():
-    #var cards = get_tree().get_nodes_in_group("Cards")
-    return
+    pass
 
 
 #z_index 처리 관련

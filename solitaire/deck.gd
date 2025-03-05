@@ -7,7 +7,7 @@ extends Node2D
 var deck: Array = []  # 카드 덱 (1~52)
 var table: Array = [[], [], [], [], [], [], []]  # 7개의 카드 스택
 var stock: Array = [[],[]]  # 남은 카드, 스톡 내부/오픈된 카드
-var cards: Array = []       #출력을 위해 main에 전달될 어레이
+
 
 func _ready():
     create_deck()
@@ -49,7 +49,6 @@ func place_cards():
         empty_card.position = Vector2(Constants.CARD_TABLE_X + i * Constants.CARD_OFFSET_X, Constants.CARD_TABLE_Y)
         empty_card.set_face_up(true)
 
-        cards.append(empty_card)        #출력용
 
         var top_card = empty_card  # 스택의 최상단 카드 추적
 
@@ -65,7 +64,7 @@ func place_cards():
                 card.position = empty_card.position  # 0번 카드와 같은 위치
             else:
                 card.position = Vector2(Constants.CARD_TABLE_X + i * Constants.CARD_OFFSET_X, Constants.CARD_TABLE_Y + (j - 1) * Constants.CARD_OVERLAP)  # 위치 지정
-            cards.append(card)      #출력용 배열 저장
+
             top_card = card     # 최상단 카드 저장
 
         # 루프 종료 후, 최상단 카드는 앞면 공개
@@ -83,7 +82,6 @@ func place_cards():
         empty_card.set_face_up(true)
         empty_card.z_index = 0
         empty_card.set_foundation(true)
-        cards.append(empty_card)
 
 
 func setup_stock():
@@ -98,15 +96,10 @@ func setup_stock():
         card.set_card_info(card_number)  # 카드 정보 설정
         card.position = Constants.STOCK_POSITION
         card.set_face_up(true)
-        cards.append(card)
+
 
     add_child(stock_switch)     #마찬가지로 필수.
     stock_switch.set_card_info(-1)  # 뒷면 스프라이트를 가진 카드
     stock_switch.position = Constants.STOCK_POSITION
     stock_switch.set_face_up(true)
     stock_switch.z_index = 100
-    cards.append(stock_switch)
-
-
-func get_cards():   #cards 전달용
-    return cards

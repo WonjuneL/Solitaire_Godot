@@ -14,14 +14,17 @@ var suit_names = ["Hearts", "Clubs", "Diamonds", "Spades"]
 @onready var MoveManager = get_node("/root/Main/MoveManager")
 
 # 카드 정보 설정
-func set_card_info(card_num: int):
-    card_number = card_num
+func set_card_info(card_no: int):
+    card_number = card_no
+    if card_no<1:
+        suit = "Extra"
+        rank = card_number
+    else:
+        suit_index = ((card_number - 1) / 13)
+        suit = suit_names[suit_index]
 
-    suit_index = ((card_num - 1) / 13)
-    suit = suit_names[suit_index]
-
-    rank_index = ((card_num - 1) % 13)
-    rank = rank_index + 1
+        rank_index = ((card_number - 1) % 13)
+        rank = rank_index + 1
     set_face_up(false)  # 기본적으로 뒷면
 
 #파운데이션 플래그
