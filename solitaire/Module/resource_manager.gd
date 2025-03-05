@@ -1,7 +1,5 @@
 extends Node
 
-#class_name ResourceManager
-
 ## 캐시 저장소
 var textures := {}
 

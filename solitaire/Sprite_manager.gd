@@ -1,7 +1,7 @@
 extends Node
 
 const CARD_SPRITE_SHEET = Constants.texture_path  # 카드 스프라이트 시트 경로
-var atlas_texture: AtlasTexture = null  # 카드 텍스처 저장용
+var atlas_texture: Texture2D = null  # 카드 텍스처 저장용
 
 # 카드 뒷면 좌표
 const BACK_UV_X = 2 + 1 * (Constants.CARD_WIDTH + 2)  # 2번째 행
@@ -16,8 +16,9 @@ const JOKER_UV_X = 2 + 2 * (Constants.CARD_WIDTH + 2)  # 3번째 행
 const JOKER_UV_Y = 2 + 4 * (Constants.CARD_HEIGHT + 2)  # 5번째 열
 
 func _ready():
-    atlas_texture = load(CARD_SPRITE_SHEET)  # 스프라이트 시트 로드
-    atlas_texture = AtlasTexture.new()
+    atlas_texture = ResourceManager.get_texture(Constants.texture_path)  # 스프라이트 시트 로드
+    if not atlas_texture:
+        push_error("Error: Failed to load sprite sheet texture.")
 
 
 # 카드의 UV 좌표 계산

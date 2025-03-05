@@ -64,7 +64,7 @@ func place_cards():
             if j == 1:      #첫 번째 카드 배치
                 card.position = empty_card.position  # 0번 카드와 같은 위치
             else:
-                card.position = Vector2(Constants.CARD_TABLE_X + i * Constants.CARD_OFFSET_X, Constants.CARD_TABLE_Y + j * Constants.CARD_OVERLAP)  # 위치 지정
+                card.position = Vector2(Constants.CARD_TABLE_X + i * Constants.CARD_OFFSET_X, Constants.CARD_TABLE_Y + (j - 1) * Constants.CARD_OVERLAP)  # 위치 지정
             cards.append(card)      #출력용 배열 저장
             top_card = card     # 최상단 카드 저장
 
