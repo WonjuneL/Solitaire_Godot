@@ -14,4 +14,4 @@ func render_cards():
         add_child(sprite)  # main 씬에 추가
 
         sprite.position = card.position  # 카드의 위치 설정
-        SpriteManager.set_card_texture(sprite, card.card_number)  # 텍스처 설정
+        SpriteManager.set_card_texture(sprite, card)  # 텍스처 설정

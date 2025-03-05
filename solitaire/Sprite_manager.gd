@@ -28,9 +28,9 @@ func get_card_uv(rank_index: int, suit_index: int) -> Vector2:
     return Vector2(2 + column * (Constants.CARD_WIDTH + 2), 2 + row * (Constants.CARD_HEIGHT + 2))
 
 # 특정 카드의 스프라이트 설정
-func set_card_texture(sprite: Sprite2D, card_number: int):
+func set_card_texture(sprite: Sprite2D, card):
     var uv_pos = Vector2()  # UV 좌표
-
+    var card_number = card.get_card_number()
     if card_number == 0:  # 빈 스택
         uv_pos = Vector2(BACK_K_UV_X, BACK_K_UV_Y)
     elif card_number == -1:  # 덱 카드
@@ -42,6 +42,8 @@ func set_card_texture(sprite: Sprite2D, card_number: int):
         var suit_index = (card_number - 1) / 13  # 0~3 (하트, 클로버, 다이아, 스페이드)
         uv_pos = get_card_uv(rank_index, suit_index)
 
+    if card.is_face_up == false:  # 뒷면 처리 (카드가 뒤집혀 있는 경우)
+        uv_pos = Vector2(BACK_UV_X, BACK_UV_Y)
     # 텍스처 설정
     var texture = AtlasTexture.new()
     texture.atlas = atlas_texture

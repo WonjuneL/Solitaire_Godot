@@ -30,8 +30,6 @@ var is_foundation = false  # 기본적으로 일반 카드 (파운데이션 아�
 func set_foundation(flag: bool):
     is_foundation = flag
 
-
-
 # 카드 앞/뒷면 설정
 func set_face_up(face_up: bool):
     is_face_up = face_up
