@@ -3,16 +3,25 @@ extends Node2D
 #게임 시작 전의 모든 카드 배치에 관여
 
 @export var card_scene: PackedScene  # 카드 프리팹
+#초기값 설정용 어레이
+var deck: Array = []  # 카드 덱 (1~52), 셔플용
+var table: Array = [[], [], [], [], [], [], []]  # 7개의 카드 스택(초기값)
+var stock: Array = []   #초기 스톡의 카드
 
-var deck: Array = []  # 카드 덱 (1~52)
-var table: Array = [[], [], [], [], [], [], []]  # 7개의 카드 스택
-var stock: Array = [[],[]]  # 남은 카드, 스톡 내부/오픈된 카드
-
+#게임 데이터 실시간 저장용 어레이
+var table_instances: Array = [[], [], [], [], [], [], []]  # 카드 객체를 저장하는 배열
+var stock_instances: Array = []  # 스톡 카드 객체를 저장하는 배열
+var foundation_instance: Array = [[], [], [], []] #파운데이션의 객체 저장용 배열
 
 func _ready():
     create_deck()
     shuffle_deck()
     deal_cards()
+
+    await get_tree().process_frame
+    var auto_scaler = get_tree().root.get_node("Scaler")
+    if auto_scaler:
+        auto_scaler.connect("scale_factor_changed", Callable(self, "update_card_positions"))
 
 # 1. 카드 덱 생성 (1~52)
 func create_deck():
@@ -48,9 +57,7 @@ func place_cards():
         empty_card.z_index = 0
         empty_card.position = Vector2(Constants.CARD_TABLE_X + i * Constants.CARD_OFFSET_X, Constants.CARD_TABLE_Y)
         empty_card.set_face_up(true)
-
-
-        var top_card = empty_card  # 스택의 최상단 카드 추적
+        table_instances[i].append(empty_card)
 
         for j in range(1, table[i].size()):
             var card_number = table[i][j]  # 저장된 카드 번호 가져오기
@@ -58,18 +65,17 @@ func place_cards():
             add_child(card)  # 씬에 추가
             card.set_card_info(card_number)  # 카드 정보 설정
             card.z_index = j + 1        # z_index 추가, 최소치 1에서 1씩 증가됨.
-
+            table_instances[i].append(card)
 
             if j == 1:      #첫 번째 카드 배치
                 card.position = empty_card.position  # 0번 카드와 같은 위치
             else:
                 card.position = Vector2(Constants.CARD_TABLE_X + i * Constants.CARD_OFFSET_X, Constants.CARD_TABLE_Y + (j - 1) * Constants.CARD_OVERLAP)  # 위치 지정
 
-            top_card = card     # 최상단 카드 저장
 
         # 루프 종료 후, 최상단 카드는 앞면 공개
-        if top_card:
-            top_card.set_face_up(true)
+        if table_instances[i].back():
+            table_instances[i].back().set_face_up(true)
     #남은 카드로 스톡을 생성
     setup_stock()
 
@@ -82,6 +88,7 @@ func place_cards():
         empty_card.set_face_up(true)
         empty_card.z_index = 0
         empty_card.set_foundation(true)
+        foundation_instance[i].append(empty_card)
 
 
 func setup_stock():
@@ -96,6 +103,7 @@ func setup_stock():
         card.set_card_info(card_number)  # 카드 정보 설정
         card.position = Constants.STOCK_POSITION
         card.set_face_up(true)
+        stock_instances.append(card)
 
 
     add_child(stock_switch)     #마찬가지로 필수.

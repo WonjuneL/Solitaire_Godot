@@ -10,6 +10,7 @@ var rank := 0
 var is_face_up: bool = false  # 앞면 상태 여부
 var is_selected = false  # 카드 선택 여부
 var suit_names = ["Hearts", "Clubs", "Diamonds", "Spades"]
+var original_position = Vector2()
 
 @onready var MoveManager = get_node("/root/Main/MoveManager")
 
@@ -47,4 +48,5 @@ func get_card_info() -> String:
 
 func _ready():
     z_index = 1     #디폴트값 설정
+    original_position = position
     add_to_group("Cards")

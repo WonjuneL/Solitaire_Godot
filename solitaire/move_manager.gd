@@ -9,28 +9,10 @@ func _ready():
     pass
 
 
-#z_index 처리 관련
-
-func highest_z_index_card(clicked_cards):
-    if clicked_cards.size() == 0:
-        return
-
-    var highest_card = clicked_cards[0]  # 첫 번째 카드를 기준으로 설정
-    for card in clicked_cards:
-        if card.z_index > highest_card.z_index:
-            highest_card = card  # 더 높은 z_index가 있으면 변경
-    print("Highest card: ", highest_card.get_card_number())
-    return highest_card
-
-
-
 func can_move(card_from, card_to):  #일반적인 이동에 관여.
     # 이동 가능 여부 확인
-
-    #디버깅
     if card_from.get_card_number() and card_to.get_card_number():
         print("check move " ,card_from.get_card_number(), " to ", card_to.get_card_number())
-
 
     if card_from == null:
         print("Card_from is null.(canmove)")

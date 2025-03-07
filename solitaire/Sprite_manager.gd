@@ -2,6 +2,7 @@ extends Node
 
 const CARD_SPRITE_SHEET = Constants.texture_path  # 카드 스프라이트 시트 경로
 var atlas_texture: Texture2D = null  # 카드 텍스처 저장용
+var sprite_list = []        #실제로 생성된 스프라이트 저장
 
 # 카드 뒷면 좌표
 const BACK_UV_X = 2 + 1 * (Constants.CARD_WIDTH + 2)  # 2번째 행
@@ -19,6 +20,14 @@ func _ready():
     atlas_texture = ResourceManager.get_texture(Constants.texture_path)  # 스프라이트 시트 로드
     if not atlas_texture:
         push_error("Error: Failed to load sprite sheet texture.")
+
+
+    # 화면 크기 변경 감지 및 크기 조정
+    await get_tree().process_frame
+    var auto_scaler = get_tree().root.get_node("Scaler")
+    if auto_scaler:
+        auto_scaler.connect("scale_factor_changed", Callable(self, "update_sprite_scale"))
+
 
 
 # 카드의 UV 좌표 계산
@@ -50,3 +59,9 @@ func set_card_texture(sprite: Sprite2D, card):
     texture.region = Rect2(uv_pos.x, uv_pos.y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
 
     sprite.texture = texture  # 스프라이트에 적용
+    sprite_list.append(sprite)
+
+func update_sprite_scale(scale_factor):
+    print("Updating sprite scale with factor:", scale_factor)   #시그널 확인 디버그
+    for sprite in sprite_list:
+        sprite.scale = Vector2(scale_factor, scale_factor)

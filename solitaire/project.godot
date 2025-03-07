@@ -21,6 +21,7 @@ Constants="*res://constants.gd"
 ResourceManager="*res://Module/resource_manager.gd"
 SpriteManager="*res://Sprite_manager.gd"
 EventManager="*res://Event_manager.gd"
+Scaler="*res://scale.gd"
 
 [rendering]
 
