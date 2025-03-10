@@ -2,7 +2,7 @@ extends Node
 
 const CARD_SPRITE_SHEET = Constants.texture_path  # 카드 스프라이트 시트 경로
 var atlas_texture: Texture2D = null  # 카드 텍스처 저장용
-var sprite_list = []        #실제로 생성된 스프라이트 저장
+var card_sprites = {}
 
 # 카드 뒷면 좌표
 const BACK_UV_X = 2 + 1 * (Constants.CARD_WIDTH + 2)  # 2번째 행
@@ -21,14 +21,12 @@ func _ready():
     if not atlas_texture:
         push_error("Error: Failed to load sprite sheet texture.")
 
-
-    # 화면 크기 변경 감지 및 크기 조정
-    await get_tree().process_frame
-    var auto_scaler = get_tree().root.get_node("Scaler")
-    if auto_scaler:
-        auto_scaler.connect("scale_factor_changed", Callable(self, "update_sprite_scale"))
+    #클릭 이벤트 처리
+    EventManager.connect("card_selected", Callable(self, "_on_card_selected"))
 
 
+func get_card_sprite(card):
+    return card_sprites.get(card, null)
 
 # 카드의 UV 좌표 계산
 func get_card_uv(rank_index: int, suit_index: int) -> Vector2:
@@ -37,9 +35,15 @@ func get_card_uv(rank_index: int, suit_index: int) -> Vector2:
     return Vector2(2 + column * (Constants.CARD_WIDTH + 2), 2 + row * (Constants.CARD_HEIGHT + 2))
 
 # 특정 카드의 스프라이트 설정
-func set_card_texture(sprite: Sprite2D, card):
+func update_sprite(card):
     var uv_pos = Vector2()  # UV 좌표
+    var sprite = card_sprites.get(card, null)
     var card_number = card.get_card_number()
+
+    if not sprite:
+        sprite = Sprite2D.new()
+        card_sprites[card] = sprite
+        add_child(sprite)
     if card_number == 0:  # 빈 스택
         uv_pos = Vector2(BACK_K_UV_X, BACK_K_UV_Y)
     elif card_number == -1:  # 덱 카드
@@ -59,9 +63,36 @@ func set_card_texture(sprite: Sprite2D, card):
     texture.region = Rect2(uv_pos.x, uv_pos.y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
 
     sprite.texture = texture  # 스프라이트에 적용
-    sprite_list.append(sprite)
+    update_position(card)
 
-func update_sprite_scale(scale_factor):
-    print("Updating sprite scale with factor:", scale_factor)   #시그널 확인 디버그
-    for sprite in sprite_list:
-        sprite.scale = Vector2(scale_factor, scale_factor)
+func update_position(card):
+    var sprite = card_sprites.get(card, null)
+    if sprite:
+        sprite.position = card.get_position()
+
+func _on_card_selected(card, status):
+    print("selected : ", card.get_card_info())
+    print("status : ", status)
+    _highlight_card(card, status)
+
+func _add_overlay(card):
+    var overlay = ColorRect.new()
+    overlay.position -= Vector2(Constants.CARD_WIDTH / 2, Constants.CARD_HEIGHT / 2)
+    overlay.color = Color(1, 0, 0, 0.5)  # 반투명 빨간색
+    overlay.size = Vector2(Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
+    overlay.name = "HighlightOverlay"
+    overlay.z_index = 100
+    card.add_child(overlay)
+
+func _remove_overlay(card):
+    var overlay = card.get_node_or_null("HighlightOverlay")
+    if overlay:
+        overlay.queue_free()
+        card.remove_child(overlay)
+
+func _highlight_card(card, switch):
+    if switch == false:
+        _remove_overlay(card)  # 기존 선택된 카드 효과 제거
+
+    if switch == true:
+        _add_overlay(card)  # 새 카드에 효과 추가

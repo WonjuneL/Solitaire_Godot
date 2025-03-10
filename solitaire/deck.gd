@@ -3,111 +3,80 @@ extends Node2D
 #게임 시작 전의 모든 카드 배치에 관여
 
 @export var card_scene: PackedScene  # 카드 프리팹
-#초기값 설정용 어레이
-var deck: Array = []  # 카드 덱 (1~52), 셔플용
-var table: Array = [[], [], [], [], [], [], []]  # 7개의 카드 스택(초기값)
-var stock: Array = []   #초기 스톡의 카드
+
+var stock_index = 0     #스톡 어레이 액세스용 변수
+signal deck_updated(cards)
+signal deck_set
 
 #게임 데이터 실시간 저장용 어레이
 var table_instances: Array = [[], [], [], [], [], [], []]  # 카드 객체를 저장하는 배열
 var stock_instances: Array = []  # 스톡 카드 객체를 저장하는 배열
-var foundation_instance: Array = [[], [], [], []] #파운데이션의 객체 저장용 배열
+var foundation_instances: Array = [[], [], [], []] #파운데이션의 객체 저장용 배열
+var stock_switch
+var all_cards = get_all_cards()
 
-func _ready():
-    create_deck()
-    shuffle_deck()
-    deal_cards()
+func initialize():
+    print("(deck) deck initialized")
+    all_cards = get_all_cards()             #전역변수에 모든 카드를 저장한다.
+    for card in all_cards:
+        add_child(card)
+    emit_signal("deck_set", all_cards)      #최초 실행이므로 반드시 모두 업데이트 신호를 보낸다.
 
-    await get_tree().process_frame
-    var auto_scaler = get_tree().root.get_node("Scaler")
-    if auto_scaler:
-        auto_scaler.connect("scale_factor_changed", Callable(self, "update_card_positions"))
+func return_all_cards():
+    return all_cards
 
-# 1. 카드 덱 생성 (1~52)
-func create_deck():
-    deck = range(1, 53)
-
-# 2. 카드 셔플
-func shuffle_deck():
-    deck.shuffle()
-
-# 3. 카드 배치 (Tableau & Stock)
-func deal_cards():
-    # 7개의 스택에 카드 배치
-    for i in range(7):
-        table[i].append(0)  #가장 밑에 깔리게 될 위치 표시 카드를 스택에 배치
-        for j in range(i + 1):
-            var card_number = deck.pop_front()
-            table[i].append(card_number)
-
-    # 남은 카드를 Stock에 저장
-    stock = deck.duplicate()
-
-    # 배치된 카드의 실제 씬을 생성하고 추가
-    place_cards()
+#정보 수정 함수(임시)
+func add_table_card(table_index, card):
+    if table_instances[table_index]:
+        table_instances[table_index].append(card)
+        var updated_cards
+        updated_cards.append(card)
+        emit_signal("deck_updated", card)
+    else:
+        return null
 
 
-# 4. 카드 씬을 생성하여 배치
-func place_cards():
-    for i in range(7):
-        # 0번 카드를 빈 공간용으로 추가
-        var empty_card = card_scene.instantiate()
-        add_child(empty_card)
-        empty_card.set_card_info(0)  # 0번 카드로 설정
-        empty_card.z_index = 0
-        empty_card.position = Vector2(Constants.CARD_TABLE_X + i * Constants.CARD_OFFSET_X, Constants.CARD_TABLE_Y)
-        empty_card.set_face_up(true)
-        table_instances[i].append(empty_card)
 
-        for j in range(1, table[i].size()):
-            var card_number = table[i][j]  # 저장된 카드 번호 가져오기
-            var card = card_scene.instantiate()  # 카드 객체 생성
-            add_child(card)  # 씬에 추가
-            card.set_card_info(card_number)  # 카드 정보 설정
-            card.z_index = j + 1        # z_index 추가, 최소치 1에서 1씩 증가됨.
-            table_instances[i].append(card)
+func _on_deck_ready(table_I, stock_I, foundation_I, switch_I):
+    table_instances = table_I
+    stock_instances = stock_I
+    foundation_instances = foundation_I
+    stock_switch = switch_I
 
-            if j == 1:      #첫 번째 카드 배치
-                card.position = empty_card.position  # 0번 카드와 같은 위치
-            else:
-                card.position = Vector2(Constants.CARD_TABLE_X + i * Constants.CARD_OFFSET_X, Constants.CARD_TABLE_Y + (j - 1) * Constants.CARD_OVERLAP)  # 위치 지정
+func get_table_card(table_index, card_index):
+    if table_instances[table_index][card_index]:
+        return table_instances[table_index][card_index]
+    else:
+        return null
 
+func get_foundation_card(foundation_index, card_index):
+    if table_instances[foundation_index][card_index]:
+        return table_instances[foundation_index][card_index]
+    else:
+        return null
 
-        # 루프 종료 후, 최상단 카드는 앞면 공개
-        if table_instances[i].back():
-            table_instances[i].back().set_face_up(true)
-    #남은 카드로 스톡을 생성
-    setup_stock()
+func get_stock_card(stock_index):
+    var index = stock_index
+    stock_index = stock_index + 1
+    if stock_instances[index]:
+        print("Stock : ", stock_instances[index].get_card_info())
+        return stock_instances[index]
+    else:
+        print("Stock is empty")
+        return null
 
-    for i in range(4):
-        # -2번 카드를 파운데이션 용으로 추가
-        var empty_card = card_scene.instantiate()
-        add_child(empty_card)
-        empty_card.set_card_info(-2)  # 파운데이션 카드로 설정
-        empty_card.position = Vector2(Constants.CARD_TABLE_X + Constants.CARD_WIDTH * 4.5 + Constants.CARD_OFFSET_X * i, Constants.CARD_TABLE_Y - Constants.CARD_HEIGHT * 2)
-        empty_card.set_face_up(true)
-        empty_card.z_index = 0
-        empty_card.set_foundation(true)
-        foundation_instance[i].append(empty_card)
+#스프라이트 설정된 모든 카드
+func get_all_cards() -> Array:
+    var all_cards = []
+
+    for column in table_instances:
+        all_cards.append_array(column)
 
 
-func setup_stock():
-    # 스톡 카드 배치
-    var stock_switch = card_scene.instantiate()
+    all_cards.append_array(stock_instances)
 
-    for i in range(stock.size()):
-        var card_number = stock.pop_front()  # 스톡에서 카드 번호 가져오기
-        var card = card_scene.instantiate()  # 카드 객체 생성
-        add_child(card)         # 필수.
-        card.z_index = i    # z_index 설정, 역순으로 설정.
-        card.set_card_info(card_number)  # 카드 정보 설정
-        card.position = Constants.STOCK_POSITION
-        card.set_face_up(true)
-        stock_instances.append(card)
+    for foundation in foundation_instances:
+        all_cards.append_array(foundation)
 
-
-    add_child(stock_switch)     #마찬가지로 필수.
-    stock_switch.set_card_info(-1)  # 뒷면 스프라이트를 가진 카드
-    stock_switch.position = Constants.STOCK_POSITION
-    stock_switch.set_face_up(true)
-    stock_switch.z_index = 100
+    all_cards.append(stock_switch)
+    return all_cards

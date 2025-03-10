@@ -21,7 +21,13 @@ Constants="*res://constants.gd"
 ResourceManager="*res://Module/resource_manager.gd"
 SpriteManager="*res://Sprite_manager.gd"
 EventManager="*res://Event_manager.gd"
-Scaler="*res://scale.gd"
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=480
+window/stretch/mode="viewport"
+window/stretch/aspect="expand"
 
 [rendering]
 

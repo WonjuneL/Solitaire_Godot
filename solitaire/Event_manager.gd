@@ -1,17 +1,19 @@
 extends Node2D
 
 var selected_card
+signal card_selected(card, bool)    #true:선택, false:선택 해제
+signal card_move(from_card, to_card)
 
 func _input(event):
     if event is InputEventMouseButton and event.pressed:
         var mouse_pos = get_global_mouse_position()
-        #print("Mouse Clicked at:", mouse_pos)  #디버그 코드
-
+        print("Mouse Clicked at:", mouse_pos)  #디버그 코드
         var clicked_card = _get_card_at_position(mouse_pos) #가장 위의 카드를 clicked_card로 설정
 
         if clicked_card and clicked_card.is_face_up == true:
             if clicked_card.get_card_number() == -1:    #스톡 선택시
                 _deselect_card()    #선택된 카드와 관계없이 스위치를 누르면 선택을 해제하고 스톡 처리를 진행
+                emit_signal("card_selected", clicked_card, false)
                 print("stock switch")   #디버그
                 pass    #스톡 스위치 처리를 move_manager에 요청
                 return
@@ -22,24 +24,30 @@ func _input(event):
                 else:
                     print("call move_manager, move to foundation")    #move_manager를 호출해 파운데이션에 대한 이동 처리 요청
                     _deselect_card()    #처리 후 선택은 해제
+                    emit_signal("card_selected", clicked_card, false)
                 return
             if selected_card == null:
                 _select_card(clicked_card)
+                emit_signal("card_selected", clicked_card, true)
             else:
                 #selected_card와 clicked_card를 이용해 move_manager호출
                 if selected_card==clicked_card:
                     print("Deselect card : ", clicked_card.get_card_info())
                     _deselect_card()
+                    emit_signal("card_selected", clicked_card, false)
                     return
-                print("call movemanager, move") #move_manager 호출, 이동확인
+                emit_signal("card_move", selected_card, clicked_card)
                 _deselect_card()
+                emit_signal("card_selected", clicked_card, false)
+
 
         else:
             print("No card is on that position.")
 
 # 특정 위치에 있는 카드를 찾는 함수
 func _get_card_at_position(position):
-    var cards = get_tree().get_nodes_in_group("Cards")
+    var deck = get_node("/root/Main/Deck")
+    var cards = deck.return_all_cards()
     var candidates = [] # 해당 위치의 선택 '후보군'
     var top_card = null
     for card in cards:  # "cards" 그룹에 속한 모든 카드 검사
@@ -64,8 +72,8 @@ func _get_card_at_position(position):
 # 카드의 경계를 반환하는 함수
 func get_card_bound(card):
     if card:
-        var width = Constants.CARD_WIDTH * card.scale.x
-        var height = Constants.CARD_HEIGHT * card.scale.y
+        var width = Constants.CARD_WIDTH
+        var height = Constants.CARD_HEIGHT
         var pos = card.global_position
 
         var bounds = [
@@ -89,36 +97,10 @@ func _select_card(card):
     if selected_card:   #이미 선택된 카드가 있었던 경우에
         _deselect_card()
     selected_card = card
-    _highlight_card(selected_card, true)         #디버그 코드
     print("Card Selected:", card.get_card_info())
 
 # 카드 선택 해제 기능
 func _deselect_card():
     if selected_card:
-        _highlight_card(selected_card, false)       #디버그 코드
         selected_card = null
         print("Deselected") #디버그
-
-
-#이하 임시 코드(추후 이동 혹은 삭제 필요)
-func _add_overlay(card):
-    var overlay = ColorRect.new()
-    overlay.position -= Vector2(Constants.CARD_WIDTH / 2, Constants.CARD_HEIGHT / 2)
-    overlay.color = Color(1, 0, 0, 0.5)  # 반투명 빨간색
-    overlay.size = Vector2(Constants.CARD_WIDTH, Constants.CARD_HEIGHT)
-    overlay.name = "HighlightOverlay"
-    overlay.z_index = 100
-    card.add_child(overlay)
-
-func _remove_overlay(card):
-    var overlay = card.get_node_or_null("HighlightOverlay")
-    if overlay:
-        overlay.queue_free()
-        card.remove_child(overlay)
-
-func _highlight_card(card, switch):
-    if switch == false:
-        _remove_overlay(card)  # 기존 선택된 카드 효과 제거
-
-    if switch == true:
-        _add_overlay(card)  # 새 카드에 효과 추가

@@ -1,4 +1,5 @@
 extends Node2D
+
 #Card.gd는 카드의 텍스쳐를 지정하는 스크립트
 
 @export var card_number: int = 0  # 카드 번호 (1~52)
@@ -11,8 +12,6 @@ var is_face_up: bool = false  # 앞면 상태 여부
 var is_selected = false  # 카드 선택 여부
 var suit_names = ["Hearts", "Clubs", "Diamonds", "Spades"]
 var original_position = Vector2()
-
-@onready var MoveManager = get_node("/root/Main/MoveManager")
 
 # 카드 정보 설정
 func set_card_info(card_no: int):
@@ -45,6 +44,9 @@ func get_card_number() -> int:
 # 카드 문양/번호 반환 함수(디버그 편의용)
 func get_card_info() -> String:
     return suit + " " + str(rank)
+
+func get_card_position():
+    return position
 
 func _ready():
     z_index = 1     #디폴트값 설정

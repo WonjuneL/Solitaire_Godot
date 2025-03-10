@@ -6,7 +6,21 @@ var stock_last_card = null
 var clicked_cards := []
 
 func _ready():
-    pass
+
+    EventManager.connect("card_selected", Callable(self, "_on_card_selected"))    #하나 선택시의 신호
+    EventManager.connect("card_move", Callable(self, "_on_card_move_requested")) #둘 선택시의 신호
+
+func _on_card_selected(card, bool): #bool은 move_manager용이 아니므로 받기만 함
+    if card.get_card_number() == -1:
+        pass    #스톡 동작 수행
+    return
+
+func _on_card_move_requested(card_from, card_to):
+    if can_move(card_from, card_to):
+        move_card(card_from, card_to)
+    else:
+        print("")
+        pass
 
 
 func can_move(card_from, card_to):  #일반적인 이동에 관여.
@@ -44,34 +58,8 @@ func can_move(card_from, card_to):  #일반적인 이동에 관여.
     # 숫자가 1 낮고, 색상이 다르면 이동 가능
     # 색이 다르고 숫자가 1 작은 경우만 이동 가능
     else:
-        return ((abs(card_from.suit - card_to.suit) == 1 or abs(card_from.suit - card_to.suit) == 3) and card_from.rank == card_to.rank - 1)
+        return ((abs(card_from.suit_index - card_to.suit_index) == 1 or abs(card_from.suit_index - card_to.suit_index) == 3) and card_from.rank == card_to.rank - 1)
 
-func select_card(card):
-    print("selected card(selectcard) : ", card.get_card_number())
-    if selected_card == card:
-        deselect_card()
-        return
-    if card.get_card_number() == -2:    #빈 파운데이션 공간 선택시
-        print("Selected Foundation")
-        return
-    if card.get_card_number() == -1:    #스톡 스위치 작동시
-        if card.prev_card:
-            draw_stock(card)
-        else:
-            refill_stock(card)
-        return
-    deselect_card()
-    selected_card = card
-    selected_card.border.visible = true
-    print("Card selected : ", card.get_card_number())
-    print("card z_index: ", card.z_index)
-
-func deselect_card():
-    if selected_card:
-        selected_card.border.visible = false  # 선택 해제 시 테두리 숨김
-        print("Card deselected : ", selected_card.get_card_number())
-        selected_card = null
-    return
 
 func move_card(card_from, card_to):
     # 1. 카드 이동
@@ -115,7 +103,7 @@ func move_card(card_from, card_to):
     if card_from.next_card != null:
         if can_move(card_from.next_card, card_from):    #항상 가능하겠지만 검사하고 호출.
             move_card(card_from.next_card, card_from)
-    deselect_card()     #이동 완료 후 선택 자동으로 해제
+
 
 func draw_stock(card):
     if card.prev_card:  #스톡에 남은 공개되지 않은 카드가 있다면

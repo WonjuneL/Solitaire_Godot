@@ -1,25 +1,43 @@
 extends Node2D
 
-var cards
+@onready var deck = $Deck
+
+var setup
 
 func _ready():
-    call_deferred("_init_after_deck")  # Deck이 로드된 후 실행되도록 예약
+    setup = preload("res://Setup.tscn").instantiate()
+    add_child(setup)
+
+    print("setup executed.")
+    # Setup -> Main 신호 연결
+    var setup_connected = setup.connect("deck_setup", Callable(self, "_on_deck_ready"))
+    var deck_connected = deck.connect("deck_updated", Callable(self, "_on_deck_updated"))
+    deck.connect("deck_set", Callable(self, "_on_deck_set"))
+
+    if setup_connected != OK:
+        print("Error: Failed to connect setup")
+    else:
+        print("(main)setup connected")
+    if deck_connected != OK:
+        print("Error: Failed to connect deck")
+    else:
+        print("(main)deck connected")
+    setup.init()  # Setup 초기화 실행
+
+
+func _on_deck_ready(table, stock, foundation, switch):
+    deck._on_deck_ready(table, stock, foundation, switch)
+    print("(main) Init deck")
+    deck.initialize()  # deck 실행.
+
 
 func _init_after_deck():
     await get_tree().process_frame  # 한 프레임 뒤 실행 (Card의 생성 및 Deck로딩 이후)
 
-    cards = get_tree().get_nodes_in_group("Cards")
-
-    if cards.is_empty():
-        print("Error: 'Cards' is empty")
-    else:
-        render_cards()  # 카드 렌더링 실행
-
-
-func render_cards():
-    for card in cards:
-        var sprite = Sprite2D.new()  # 새로운 스프라이트 생성
-        add_child(sprite)  # main 씬에 추가
-
-        sprite.position = card.position  # 카드의 위치 설정
-        SpriteManager.set_card_texture(sprite, card)  # 텍스처 설정
+func _on_deck_set(cards):
+    print("Deck updated, updated_cards type:", cards)
+    if cards is Array:
+        for card in cards:
+            SpriteManager.update_sprite(card)  # SpriteManager에 전달
+    if setup:
+        setup._free()
